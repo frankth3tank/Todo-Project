@@ -3,7 +3,7 @@ from fastapi import APIRouter, Depends, HTTPException
 from database import SessionLocal
 from sqlalchemy.orm import Session
 from pydantic import BaseModel, Field
-from typing import Optional
+from typing import Annotated, Optional
 
 router = APIRouter()
 
@@ -14,6 +14,8 @@ def get_db():
     finally:
         db.close()
         
+db_dependency = Annotated[Session, Depends(get_db)]
+        
 class Todo(BaseModel):
     title : str
     description : Optional[str]
@@ -22,11 +24,11 @@ class Todo(BaseModel):
     
         
 @router.get("/")
-async def read_all(db: Session = Depends(get_db)):
+async def read_all(db: db_dependency):
     return db.query(Todos).all()
 
 @router.get("/todo/{id}")
-async def read_todo(todo_id: int, db: Session = Depends(get_db)):
+async def read_todo(todo_id: int, db: db_dependency):
     todo_model = db.query(Todos).filter(Todos.id == todo_id).first()
     
     if todo_model is not None:
@@ -35,7 +37,7 @@ async def read_todo(todo_id: int, db: Session = Depends(get_db)):
     raise http_exception()
 
 @router.post("/")
-async def create_todo(todo: Todo, db: Session = Depends(get_db)):
+async def create_todo(todo: Todo, db: db_dependency):
     todo_model = Todos()
     todo_model.title = todo.title
     todo_model.description = todo.description
@@ -48,7 +50,7 @@ async def create_todo(todo: Todo, db: Session = Depends(get_db)):
     return successful_response(201)
     
 @router.put("/{todo_id}")
-async def update_todo(todo_id: int, todo: Todo, db: Session = (Depends(get_db))):
+async def update_todo(todo_id: int, todo: Todo, db: db_dependency):
     todo_model = db.query(Todos).filter(Todos.id == todo_id).first()
     
     if todo_model is None:
@@ -65,7 +67,7 @@ async def update_todo(todo_id: int, todo: Todo, db: Session = (Depends(get_db)))
     return successful_response(200)
     
 @router.delete("/{todo_id}")
-async def delete_todo(todo_id: int, db: Session = Depends(get_db)):
+async def delete_todo(todo_id: int, db: db_dependency):
     todo_model = db.query(Todos).filter(Todos.id == todo_id).first()
     
     if todo_model is None:
