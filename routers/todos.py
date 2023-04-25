@@ -60,8 +60,12 @@ async def create_todo(user: user_dependency, todo_request: Todo, db: db_dependen
     
     
 @router.put("/{todo_id}")
-async def update_todo(todo_id: int, todo: Todo, db: db_dependency):
-    todo_model = db.query(Todos).filter(Todos.id == todo_id).first()
+async def update_todo(user: user_dependency, todo_id: int, todo: Todo, db: db_dependency):
+    
+    if user is None:
+        raise HTTPException(status_code = 401, detail = "Authentication failed")
+    
+    todo_model = db.query(Todos).filter(Todos.id == todo_id).filter(Todos.owner_id == user.get("id")).first()
     
     if todo_model is None:
         raise http_exception()
