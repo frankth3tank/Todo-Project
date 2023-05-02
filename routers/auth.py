@@ -10,6 +10,7 @@ from starlette import status
 from fastapi.security import OAuth2PasswordRequestForm, OAuth2PasswordBearer
 from jose import jwt, JWTError
 
+# Dummy data, in real life it would be done with enviromental variables
 SECRET_KEY = "ba6ed2974015634d926bb6c4648b7a8767e34990fd349e1b7e24405332edd886"
 ALGORITHM = "HS256"
 
